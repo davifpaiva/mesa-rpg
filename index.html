@@ -49,18 +49,42 @@ video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 #play{position:absolute;inset:0;margin:auto;width:max-content;height:max-content}
 .bar input[type=range]{width:150px;padding:0;accent-color:var(--red)}
 .bar label{margin:10px 0 0}
+
+[hidden]{display:none!important}
+#side{display:none;margin-top:22px;gap:20px;grid-template-columns:1fr 1fr}
+#stage.on + #side{display:grid}
+@media(max-width:700px){#side{grid-template-columns:1fr}}
+.row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.row input[type=text]{flex:1}.row button{margin:0}
+.log{height:230px;overflow-y:auto;background:#f6e9c6;border:2px solid var(--brown);border-radius:4px;padding:8px;font-size:.98rem}
+.ln{margin:3px 0;overflow-wrap:anywhere}.ln b{color:var(--brown)}
+.ln.wh{color:var(--red);font-style:italic}.ln.wh b{color:var(--red)}
+.ln.sys{color:#7a6240;font-style:italic;font-size:.9rem}
+.ln .tot{font-weight:bold;font-size:1.15rem;color:var(--red);font-family:"IM Fell English SC",Georgia,serif}
+.ln.crit{background:rgba(242,217,74,.45)}.ln.fail{background:rgba(163,32,28,.18)}
+.dice{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.dice div{flex:1;min-width:70px}.dice label{margin-top:0}
+.dice input{text-align:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{margin:0!important;padding:4px 10px!important;font-size:.95rem!important}
+.who{font-size:.95rem;color:#5a3a1c;margin-top:8px;font-style:italic}
+.wcheck{display:flex;align-items:center;gap:6px;margin:0;white-space:nowrap}
+.wcheck input{width:auto;accent-color:var(--red)}
+#wait{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#f0d9a0;font-family:"IM Fell English SC",Georgia,serif;font-size:1.3rem;letter-spacing:.06em;text-align:center;padding:12px;background:radial-gradient(circle,#2a1a0c,#0d0804)}
+#wait svg{width:90px;height:90px}
 </style>
 </head>
 <body>
-<main>
-<header>
-<svg class="emblem" viewBox="0 0 100 100" aria-hidden="true">
+<svg style="display:none" aria-hidden="true"><symbol id="emb" viewBox="0 0 100 100">
 <g fill="none" stroke="#d9b36a" stroke-width="1"><circle cx="50" cy="50" r="47"/><path d="M50 2V20M50 80V98M2 50H20M80 50H98"/></g>
 <circle cx="50" cy="50" r="36" fill="#1a120a" stroke="#d9b36a" stroke-width="1.5"/>
 <g fill="none" stroke="#6b4a22" stroke-width=".8"><circle cx="50" cy="50" r="33"/><circle cx="50" cy="50" r="31"/><circle cx="50" cy="50" r="29"/></g>
 <polygon fill="#f2d94a" stroke="#1c130b" stroke-width="1.2" stroke-linejoin="round" points="50,20 55,38 71.2,28.8 62,45 80,50 62,55 71.2,71.2 55,62 50,80 45,62 28.8,71.2 38,55 20,50 38,45 28.8,28.8 45,38"/>
 <circle cx="50" cy="50" r="8" fill="#f2d94a" stroke="#1c130b" stroke-width="1.2"/><circle cx="50" cy="50" r="2.6" fill="#1c130b"/>
-</svg>
+</symbol></svg>
+<main>
+<header>
+<svg class="emblem" aria-hidden="true"><use href="#emb"/></svg>
 <h1>Mesa de Transmissão</h1>
 <p class="sub">Revele o mapa, a ficha e o monstro a toda a mesa, com áudio e sem limite de tempo.</p>
 <div class="rule">&#9670;</div>
@@ -69,6 +93,10 @@ video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 <div class="grid">
   <section class="card" id="hostCard">
     <h2><small>MESTRE</small>Transmitir</h2><hr>
+    <label for="hname">Seu nome</label>
+    <input type="text" id="hname" maxlength="20" autocomplete="off">
+    <label for="hcode">Código da sala (opcional, deixe vazio para sortear)</label>
+    <input type="text" id="hcode" maxlength="12" placeholder="Ex.: ITAGU" autocomplete="off" style="text-transform:uppercase">
     <label for="fps">Fluidez</label>
     <select id="fps"><option value="15">15 fps (economiza internet)</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select>
     <label for="bitrate">Qualidade</label>
@@ -77,15 +105,19 @@ video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
     <select id="res"><option value="480">480p (PC fraco)</option><option value="720" selected>720p (recomendado)</option><option value="1080">1080p (PC forte)</option></select>
     <label for="content">Conteúdo</label>
     <select id="content"><option value="motion" selected>Movimento (vídeo, YouTube, jogos)</option><option value="detail">Texto e imagens (fichas, mapas)</option></select>
-    <button id="startBtn">Escolher tela e começar</button>
+    <button id="openBtn">1. Abrir sala</button>
+    <button id="startBtn" disabled>2. Compartilhar tela</button>
     <button id="stopBtn" class="bad" disabled>Parar transmissão</button>
+    <button id="closeBtn" class="sec" disabled>Fechar sala</button>
     <div class="tip">Na janela do navegador, escolha <b>Aba</b> e marque <b>Compartilhar áudio da aba</b>. Para o som do sistema inteiro, escolha <b>Tela inteira</b> (Chrome/Edge no Windows).</div>
   </section>
 
   <section class="card" id="viewCard">
     <h2><small>AVENTUREIRO</small>Assistir</h2><hr>
+    <label for="vname">Seu nome</label>
+    <input type="text" id="vname" maxlength="20" placeholder="Como o mestre vai te ver" autocomplete="off">
     <label for="room">Código da sala</label>
-    <input id="room" placeholder="· · · · ·" maxlength="5" autocomplete="off">
+    <input type="text" id="room" placeholder="· · · · ·" maxlength="12" autocomplete="off">
     <button id="joinBtn">Entrar na sala</button>
     <button id="leaveBtn" class="sec" disabled>Sair</button>
   </section>
@@ -93,39 +125,73 @@ video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
 
 <section id="stage" class="card">
   <div class="bar"><span class="code" id="codeOut"></span><span class="status" id="status"></span></div>
-  <div class="vwrap"><video id="vid" autoplay playsinline></video><button id="play" hidden>Tocar vídeo</button></div>
+  <div class="bar"><button class="sec" id="copyBtn">Copiar link de convite</button></div>
+  <div class="who" id="who"></div>
+  <div class="vwrap"><video id="vid" autoplay playsinline></video><div id="wait"><svg aria-hidden="true"><use href="#emb"/></svg>A sessão começa em breve…</div><button id="play" hidden>Tocar vídeo</button></div>
   <div class="bar">
     <button class="sec" id="fsBtn">Tela cheia</button>
+    <button class="sec" id="pipBtn">Janela flutuante</button>
     <label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="1">
     <button class="sec" id="muteBtn">Silenciar</button>
+  </div>
+</section>
+
+<section id="side">
+  <div class="card">
+    <h2><small>TAVERNA</small>Chat da mesa</h2><hr>
+    <div class="log" id="log" aria-live="polite"></div>
+    <div class="row"><input type="text" id="msg" maxlength="300" placeholder="Escreva uma mensagem" autocomplete="off"><button id="sendBtn">Enviar</button></div>
+    <div class="row"><label class="wcheck" id="whl"><input type="checkbox" id="wh"> Sussurrar ao mestre</label><button class="sec chip" id="sndBtn">Som: ligado</button></div>
+  </div>
+  <div class="card">
+    <h2><small>DESTINO</small>Rolador de dados</h2><hr>
+    <div class="dice">
+      <div><label for="dn">Dados</label><input type="number" id="dn" min="1" max="50" value="1"></div>
+      <div><label for="dd">Lados</label><input type="number" id="dd" min="1" max="1000" value="20"></div>
+      <div><label for="dm">Bônus</label><input type="number" id="dm" min="-999" max="999" value="0"></div>
+    </div>
+    <div class="chips" id="chips"></div>
+    <button id="rollBtn">Rolar</button>
+    <div class="log" id="dlog" style="height:150px;margin-top:10px"></div>
   </div>
 </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
-const $ = id => document.getElementById(id);
-const PREFIX = "mesa-rpg-";
-let peer = null, stream = null, calls = [], mode = null;
+const $=id=>document.getElementById(id);
+const PREFIX="mesa-rpg-", conns=new Map();
+let peer=null,stream=null,mode=null,myName="",code="",hostConn=null,actx=null,soundOn=true,unread=0;
+const clip=(s,n=300)=>String(s||"").trim().slice(0,n);
+const clean=s=>String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,12);
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k)||"";localStorage.setItem(k,v)}catch(e){return ""}};
+function setStatus(t,c){const e=$("status");e.textContent=t;e.className="status "+(c||"");}
+function newCode(){const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789";return Array.from({length:5},()=>a[Math.random()*a.length|0]).join("");}
 
-function setStatus(t, c){ const s=$("status"); s.textContent=t; s.className="status "+(c||""); }
-function showStage(code, host){
-  $("stage").classList.add("on"); $("codeOut").textContent = code;
-  $("vid").muted = host; $("muteBtn").textContent = host ? "Ativar som local" : "Silenciar";
-  $("vol").disabled = host;
-}
-function resetUI(){
-  $("startBtn").disabled=false; $("stopBtn").disabled=true;
-  $("joinBtn").disabled=false; $("leaveBtn").disabled=true;
-  $("stage").classList.remove("on"); $("vid").srcObject=null; mode=null;
-}
-function cleanup(){
-  calls.forEach(c=>{try{c.close()}catch(e){}}); calls=[];
-  if(stream){stream.getTracks().forEach(t=>t.stop()); stream=null;}
-  if(peer){try{peer.destroy()}catch(e){} peer=null;}
-  resetUI();
-}
-function newCode(){ const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; return Array.from({length:5},()=>a[Math.random()*a.length|0]).join(""); }
+/* ---------- Som e avisos ---------- */
+function unlockAudio(){try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();actx.resume();}catch(e){}}
+function tone(f,t0,d,v){const o=actx.createOscillator(),g=actx.createGain(),t=actx.currentTime+t0;o.frequency.value=f;g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+d+.02);}
+function beep(k){if(!soundOn||!actx)return;try{if(k==="wh"){tone(880,0,.18,.25);tone(1175,.2,.35,.25);}else tone(660,0,.1,.08);}catch(e){}}
+function bump(){if(document.hidden){unread++;document.title="("+unread+") Mesa de Transmissão";}}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){unread=0;document.title="Mesa de Transmissão";}});
+
+/* ---------- Chat e dados (exibição) ---------- */
+function ln(el,cls,who,text){const d=document.createElement("div");d.className="ln "+cls;const b=document.createElement("b");b.textContent=who;d.append(b," "+text);el.append(d);while(el.children.length>200)el.firstChild.remove();return d;}
+function showChat(m){if(m.wh)ln($("log"),"wh",m.own?"Você (sussurro ao mestre):":m.from+" (sussurro):",m.text);else ln($("log"),"",m.from+":",m.text);$("log").scrollTop=1e9;}
+function showSys(t){ln($("log"),"sys","·",t);$("log").scrollTop=1e9;}
+function showWho(l){$("who").textContent="Na sala: "+l.join(", ");}
+function rollDice(n,d,m){n=Math.min(50,Math.max(1,n|0||1));d=Math.min(1000,Math.max(1,d|0||1));m=Math.min(999,Math.max(-999,m|0));const a=new Uint32Array(n);crypto.getRandomValues(a);const rolls=[...a].map(x=>x%d+1);return{t:"roll",n,d,m,rolls,total:rolls.reduce((s,x)=>s+x,0)+m};}
+function showRoll(r){const e=ln($("dlog"),"",r.from,""),mod=r.m?(r.m>0?"+":"")+r.m:"";e.append(" rolou "+r.n+"d"+r.d+mod+": ");if(r.n>1||r.m)e.append("["+r.rolls.join(", ")+"] = ");const t=document.createElement("span");t.className="tot";t.textContent=r.total;if(r.n===1&&r.d===20&&!r.m){if(r.total===20)e.classList.add("crit");if(r.total===1)e.classList.add("fail");}e.append(t);$("dlog").scrollTop=1e9;}
+
+/* ---------- Estado da tela ---------- */
+function setBtns(){const idle=!mode,host=mode==="host",open=host&&!!peer&&!!code;
+ $("openBtn").disabled=!idle;$("closeBtn").disabled=!open;$("startBtn").disabled=!(open&&!stream);$("stopBtn").disabled=!(open&&!!stream);
+ $("joinBtn").disabled=!idle;$("leaveBtn").disabled=idle||host;}
+function showStage(c,host){$("stage").classList.add("on");$("codeOut").textContent=c;$("vid").muted=host;$("muteBtn").textContent=host?"Ativar som local":"Silenciar";$("vol").disabled=host;$("whl").hidden=host;}
+function resetAll(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+ conns.forEach(p=>{try{p.conn.close()}catch(e){}});conns.clear();hostConn=null;
+ if(peer){try{peer.destroy()}catch(e){}peer=null;}
+ mode=null;code="";$("vid").srcObject=null;$("wait").hidden=false;$("stage").classList.remove("on");$("log").textContent="";$("dlog").textContent="";$("who").textContent="";setBtns();}
 
 /* ---------- Anfitrião ---------- */
 // Coloca o H264 na frente: muitos PCs codificam H264 pela placa de vídeo, aliviando o processador.
@@ -160,74 +226,73 @@ async function tuneSender(call){
     }
   });
 }
-function startPeerHost(code){
-  peer = new Peer(PREFIX+code);
-  peer.on("open", ()=>{ showStage(code, true); updateViewers(); });
-  peer.on("error", e=>{
-    if(e.type==="unavailable-id"){ peer.destroy(); startPeerHost(newCode()); return; }
-    setStatus("Erro de conexão: "+e.type, "err");
-  });
-  peer.on("disconnected", ()=>{ try{peer.reconnect()}catch(e){} });
-  peer.on("connection", conn=>{
-    conn.on("open", ()=>{
-      const call = peer.call(conn.peer, stream, { sdpTransform: preferH264 });
-      calls.push(call); tuneSender(call); updateViewers();
-      const drop = ()=>{ calls = calls.filter(c=>c!==call); updateViewers(); };
-      call.on("close", drop); conn.on("close", ()=>{ try{call.close()}catch(e){} drop(); });
-    });
-  });
-}
-function updateViewers(){ setStatus("Transmitindo · "+calls.length+" espectador(es)", "ok"); }
-
-$("startBtn").onclick = async ()=>{
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){ alert("Este navegador não permite compartilhar tela. Use Chrome ou Edge no computador."); return; }
-  try{
-    const fps = +$("fps").value;
-    stream = await navigator.mediaDevices.getDisplayMedia({
-      video:{ frameRate:{ideal:fps,max:fps}, height:{ideal:+$("res").value,max:+$("res").value} },
-      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
-    });
-  }catch(e){ return; }
-  const v = stream.getVideoTracks()[0];
-  if(v){ v.contentHint = $("content").value; v.onended = ()=>{ if(mode==="host") cleanup(); }; }
-  mode="host";
-  $("vid").srcObject = stream;
-  $("startBtn").disabled=true; $("stopBtn").disabled=false; $("joinBtn").disabled=true;
-  startPeerHost(newCode());
-  if(!stream.getAudioTracks().length) setTimeout(()=>setStatus("Transmitindo SEM áudio: marque 'Compartilhar áudio' ao escolher a tela","err"),1500);
-};
-$("stopBtn").onclick = cleanup;
+function bcast(m){conns.forEach(p=>{try{if(p.conn.open)p.conn.send(m)}catch(e){}});}
+function hostStatus(){setStatus((stream?"Transmitindo":"Sala aberta, sem transmissão")+" · "+conns.size+" espectador(es)","ok");}
+function sendWho(){const l=[myName+" (mestre)",...[...conns.values()].map(p=>p.name)];showWho(l);bcast({t:"who",list:l});hostStatus();}
+function callViewer(id){const p=conns.get(id);if(!p||!stream)return;const call=peer.call(id,stream,{sdpTransform:preferH264});p.call=call;tuneSender(call);}
+function onData(id,d){const p=conns.get(id);if(!p||!d)return;
+ if(d.t==="hello"){p.name=clip(d.name,20)||"Aventureiro";sendWho();showSys(p.name+" entrou");bcast({t:"sys",text:p.name+" entrou"});}
+ else if(d.t==="chat"){const text=clip(d.text);if(!text)return;const m={t:"chat",from:p.name,text};
+  if(d.wh){m.wh=1;showChat(m);beep("wh");bump();try{p.conn.send({...m,own:1})}catch(e){}}
+  else{showChat(m);bcast(m);beep("msg");bump();}}
+ else if(d.t==="roll"){const r=rollDice(d.n,d.d,d.m);r.from=p.name;showRoll(r);bcast(r);}}
+function startHost(c,fixed){
+ peer=new Peer(PREFIX+c);
+ peer.on("open",()=>{code=c;showStage(c,true);sendWho();setBtns();});
+ peer.on("error",e=>{if(e.type==="unavailable-id"){try{peer.destroy()}catch(x){}peer=null;if(fixed){alert("Esse código já está em uso. Escolha outro ou deixe em branco.");resetAll();}else startHost(newCode(),false);return;}setStatus("Erro de conexão: "+e.type,"err");});
+ peer.on("disconnected",()=>{try{peer.reconnect()}catch(e){}});
+ peer.on("connection",conn=>{
+  conn.on("open",()=>{conns.set(conn.peer,{conn,name:"Aventureiro",call:null});if(stream)callViewer(conn.peer);});
+  conn.on("data",d=>onData(conn.peer,d));
+  conn.on("close",()=>{const p=conns.get(conn.peer);if(!p)return;try{p.call&&p.call.close()}catch(e){}conns.delete(conn.peer);sendWho();showSys(p.name+" saiu");bcast({t:"sys",text:p.name+" saiu"});});
+ });}
+$("openBtn").onclick=()=>{myName=clip($("hname").value,20)||"Mestre";const c=clean($("hcode").value);ls("hname",myName);ls("hcode",c);unlockAudio();mode="host";setBtns();startHost(c||newCode(),!!c);};
+$("startBtn").onclick=async()=>{
+ if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){alert("Este navegador não permite compartilhar tela. Use Chrome ou Edge no computador.");return;}
+ let s;try{const fps=+$("fps").value,h=+$("res").value;s=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:fps,max:fps},height:{ideal:h,max:h}},audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});}catch(e){return;}
+ stream=s;const v=s.getVideoTracks()[0];if(v){v.contentHint=$("content").value;v.onended=()=>{if(stream===s)stopShare();};}
+ $("vid").srcObject=s;$("wait").hidden=true;conns.forEach((p,id)=>callViewer(id));setBtns();hostStatus();
+ if(!s.getAudioTracks().length)setTimeout(()=>setStatus("Transmitindo SEM áudio: marque 'Compartilhar áudio' ao escolher a tela","err"),1500);};
+function stopShare(){conns.forEach(p=>{try{p.call&&p.call.close()}catch(e){}p.call=null;});if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}$("vid").srcObject=null;$("wait").hidden=false;setBtns();if(peer&&mode==="host")hostStatus();}
+$("stopBtn").onclick=stopShare;
+$("closeBtn").onclick=()=>{bcast({t:"sys",text:"O mestre fechou a sala."});setTimeout(resetAll,150);};
 
 /* ---------- Espectador ---------- */
-$("joinBtn").onclick = ()=>{
-  const code = $("room").value.trim().toUpperCase();
-  if(code.length!==5){ alert("Digite o código de 5 letras."); return; }
-  mode="viewer"; $("joinBtn").disabled=true; $("leaveBtn").disabled=false; $("startBtn").disabled=true;
-  showStage(code,false); setStatus("Conectando...");
-  peer = new Peer();
-  peer.on("open", ()=>{
-    const conn = peer.connect(PREFIX+code, {reliable:true});
-    const t = setTimeout(()=>{ if(mode==="viewer" && !$("vid").srcObject){ setStatus("Sala não encontrada. Confira o código.","err"); } }, 10000);
-    conn.on("close", ()=>{ clearTimeout(t); if(mode==="viewer"){ setStatus("A transmissão terminou.","err"); } });
-  });
-  peer.on("call", call=>{
-    call.answer();
-    call.on("stream", s=>{
-      $("vid").srcObject = s; setStatus("Ao vivo","ok");
-      $("vid").play().catch(()=>{ $("play").hidden=false; });
-    });
-    call.on("close", ()=>setStatus("A transmissão terminou.","err"));
-  });
-  peer.on("error", e=>setStatus(e.type==="peer-unavailable" ? "Sala não encontrada. Confira o código." : "Erro: "+e.type,"err"));
-};
-$("leaveBtn").onclick = cleanup;
-$("play").onclick = ()=>{ $("vid").play(); $("play").hidden=true; };
+function onViewerData(d){if(!d)return;
+ if(d.t==="chat"){showChat(d);if(!d.own&&d.from!==myName){beep("msg");bump();}}
+ else if(d.t==="roll")showRoll(d);else if(d.t==="who")showWho(d.list);else if(d.t==="sys")showSys(d.text);}
+$("joinBtn").onclick=()=>{code=clean($("room").value);if(code.length<3){alert("Digite o código da sala.");return;}
+ myName=clip($("vname").value,20)||"Aventureiro";ls("vname",myName);unlockAudio();mode="viewer";setBtns();showStage(code,false);setStatus("Conectando...");
+ let ok=false;peer=new Peer();
+ peer.on("open",()=>{hostConn=peer.connect(PREFIX+code,{reliable:true});
+  hostConn.on("open",()=>{ok=true;hostConn.send({t:"hello",name:myName});setStatus("Na sala · aguardando o mestre compartilhar a tela","ok");});
+  hostConn.on("data",onViewerData);
+  hostConn.on("close",()=>{if(mode==="viewer"){setStatus("A sala foi encerrada.","err");$("vid").srcObject=null;$("wait").hidden=false;}});
+  setTimeout(()=>{if(!ok&&mode==="viewer")setStatus("Sala não encontrada. Confira o código.","err");},10000);});
+ peer.on("call",call=>{call.answer();
+  call.on("stream",st=>{$("vid").srcObject=st;$("wait").hidden=true;setStatus("Ao vivo","ok");$("vid").play().catch(()=>{$("play").hidden=false;});});
+  call.on("close",()=>{$("vid").srcObject=null;$("wait").hidden=false;if(mode==="viewer")setStatus("Na sala · aguardando o mestre compartilhar a tela","ok");});});
+ peer.on("error",e=>setStatus(e.type==="peer-unavailable"?"Sala não encontrada. Confira o código.":"Erro: "+e.type,"err"));};
+$("leaveBtn").onclick=resetAll;
+$("play").onclick=()=>{$("vid").play();$("play").hidden=true;};
 
-/* ---------- Controles ---------- */
-$("fsBtn").onclick = ()=>{ const w=document.querySelector(".vwrap"); document.fullscreenElement ? document.exitFullscreen() : w.requestFullscreen(); };
-$("vol").oninput = e=>{ $("vid").volume = e.target.value; };
-$("muteBtn").onclick = ()=>{ const v=$("vid"); v.muted=!v.muted; $("muteBtn").textContent = v.muted ? "Ativar som" : "Silenciar"; };
-window.addEventListener("beforeunload", ()=>{ if(peer) peer.destroy(); });
+/* ---------- Chat, dados e extras ---------- */
+function sendChat(){const t=clip($("msg").value);if(!t)return;$("msg").value="";
+ if(mode==="host"){const m={t:"chat",from:myName,text:t};showChat(m);bcast(m);}
+ else if(hostConn&&hostConn.open)hostConn.send({t:"chat",text:t,wh:$("wh").checked?1:0});}
+$("sendBtn").onclick=sendChat;$("msg").onkeydown=e=>{if(e.key==="Enter")sendChat();};
+$("rollBtn").onclick=()=>{const n=+$("dn").value,d=+$("dd").value,m=+$("dm").value;
+ if(mode==="host"){const r=rollDice(n,d,m);r.from=myName;showRoll(r);bcast(r);}
+ else if(hostConn&&hostConn.open)hostConn.send({t:"roll",n,d,m});};
+[4,6,8,10,12,20,100].forEach(n=>{const b=document.createElement("button");b.className="sec chip";b.textContent="d"+n;b.onclick=()=>{$("dd").value=n;};$("chips").append(b);});
+$("sndBtn").onclick=()=>{soundOn=!soundOn;$("sndBtn").textContent="Som: "+(soundOn?"ligado":"desligado");unlockAudio();};
+$("copyBtn").onclick=async()=>{const u=location.origin+location.pathname+"?sala="+code;try{await navigator.clipboard.writeText(u);$("copyBtn").textContent="Link copiado!";setTimeout(()=>$("copyBtn").textContent="Copiar link de convite",2000);}catch(e){prompt("Copie o link:",u);}};
+$("pipBtn").onclick=()=>{const v=$("vid");if(document.pictureInPictureElement)document.exitPictureInPicture();else v.requestPictureInPicture().catch(()=>{});};
+if(!document.pictureInPictureEnabled)$("pipBtn").hidden=true;
+$("hname").value=ls("hname")||"Mestre";$("hcode").value=ls("hcode");$("vname").value=ls("vname");
+const q=clean(new URLSearchParams(location.search).get("sala"));if(q){$("room").value=q;$("vname").focus();}
+setBtns();
+
 </script>
 </body>
 </html>
