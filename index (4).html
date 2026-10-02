@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mesa de Transmissão</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=IM+Fell+English:ital@0;1&display=swap">
+<style>
+:root{--ink:#1c130b;--brown:#3a2412;--gold:#c9a24a;--parch:#e6cf9a;--parch2:#cfae72;--red:#a3201c;--ok:#2f6b3a;--sun:#f2d94a}
+*{box-sizing:border-box}
+html{background:#0d0804}
+body{margin:0;min-height:100vh;color:var(--ink);font-family:"IM Fell English",Georgia,serif;font-size:1.05rem}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(rgba(13,8,4,.72),rgba(13,8,4,.92)),url(mapa.jpg) center/cover #0d0804}
+main{max-width:1060px;margin:0 auto;padding:28px 16px 48px}
+header{text-align:center;margin-bottom:26px}
+.emblem{width:92px;height:92px}
+h1{font-family:"IM Fell English SC",Georgia,serif;font-weight:400;font-size:clamp(2rem,6vw,3.1rem);color:#f0d9a0;margin:6px 0 2px;letter-spacing:.06em;text-shadow:0 2px 0 #000,0 0 18px rgba(201,162,74,.35)}
+.sub{color:#cdb482;font-style:italic;margin:0}
+.rule{display:flex;align-items:center;gap:12px;max-width:380px;margin:14px auto 0;color:var(--gold)}
+.rule::before,.rule::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.rule::after{transform:scaleX(-1)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{position:relative;padding:22px 22px 24px;background:radial-gradient(ellipse at 25% 15%,#f0dcaa,var(--parch) 55%,var(--parch2));border:3px solid var(--brown);border-radius:6px;box-shadow:inset 0 0 0 5px var(--parch),inset 0 0 0 6px #8a5a2b,0 10px 28px rgba(0,0,0,.6)}
+.card h2{font-family:"IM Fell English SC",Georgia,serif;font-weight:400;font-size:1.45rem;margin:0 0 6px;text-align:center;color:var(--brown);letter-spacing:.05em}
+.card h2 small{display:block;font-size:.8rem;color:var(--red);letter-spacing:.2em}
+.card hr{border:0;height:2px;margin:6px 0 10px;background:linear-gradient(90deg,transparent,#8a5a2b,transparent)}
+label{display:block;font-size:.95rem;color:#5a3a1c;margin:12px 0 4px;font-style:italic}
+select,input[type=text],input:not([type]){width:100%;padding:9px 10px;border:2px solid var(--brown);border-radius:4px;background:#f6e9c6;color:var(--ink);font:inherit}
+#room{text-transform:uppercase;letter-spacing:.35em;text-align:center;font-size:1.4rem}
+button{font-family:"IM Fell English SC",Georgia,serif;font-size:1.05rem;letter-spacing:.05em;padding:10px 18px;margin:14px 8px 0 0;border:2px solid var(--ink);border-radius:4px;background:linear-gradient(#d98a1f,#b56a10);color:#1c0f04;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,235,170,.5),0 2px 0 #000}
+button:hover:not(:disabled){filter:brightness(1.1)}
+button:active:not(:disabled){transform:translateY(1px)}
+button.sec{background:linear-gradient(#f3e3b6,#dcc48a)}
+button.bad{background:linear-gradient(#c3302a,#8f1814);color:#fbe9c8}
+button:disabled{opacity:.45;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+.tip{font-size:.9rem;color:#5a3a1c;margin-top:14px;line-height:1.4;border-top:1px dashed #8a5a2b;padding-top:10px}
+#stage{display:none;margin-top:22px}
+#stage.on{display:block}
+.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.bar button{margin:10px 0 0}
+.code{font-family:"IM Fell English SC",Georgia,serif;font-size:2.4rem;letter-spacing:.2em;color:var(--red);text-shadow:1px 1px 0 rgba(0,0,0,.25)}
+.status{font-style:italic;color:#5a3a1c}
+.status.ok{color:var(--ok);font-weight:bold}.status.err{color:var(--red);font-weight:bold}
+.vwrap{position:relative;margin-top:8px;background:#000;border:4px solid var(--brown);outline:2px solid var(--gold);outline-offset:-8px;aspect-ratio:16/9}
+video{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+#play{position:absolute;inset:0;margin:auto;width:max-content;height:max-content}
+.bar input[type=range]{width:150px;padding:0;accent-color:var(--red)}
+.bar label{margin:10px 0 0}
+</style>
+</head>
+<body>
+<main>
+<header>
+<svg class="emblem" viewBox="0 0 100 100" aria-hidden="true">
+<g fill="none" stroke="#d9b36a" stroke-width="1"><circle cx="50" cy="50" r="47"/><path d="M50 2V20M50 80V98M2 50H20M80 50H98"/></g>
+<circle cx="50" cy="50" r="36" fill="#1a120a" stroke="#d9b36a" stroke-width="1.5"/>
+<g fill="none" stroke="#6b4a22" stroke-width=".8"><circle cx="50" cy="50" r="33"/><circle cx="50" cy="50" r="31"/><circle cx="50" cy="50" r="29"/></g>
+<polygon fill="#f2d94a" stroke="#1c130b" stroke-width="1.2" stroke-linejoin="round" points="50,20 55,38 71.2,28.8 62,45 80,50 62,55 71.2,71.2 55,62 50,80 45,62 28.8,71.2 38,55 20,50 38,45 28.8,28.8 45,38"/>
+<circle cx="50" cy="50" r="8" fill="#f2d94a" stroke="#1c130b" stroke-width="1.2"/><circle cx="50" cy="50" r="2.6" fill="#1c130b"/>
+</svg>
+<h1>Mesa de Transmissão</h1>
+<p class="sub">Revele o mapa, a ficha e o monstro a toda a mesa, com áudio e sem limite de tempo.</p>
+<div class="rule">&#9670;</div>
+</header>
+
+<div class="grid">
+  <section class="card" id="hostCard">
+    <h2><small>MESTRE</small>Transmitir</h2><hr>
+    <label for="fps">Fluidez</label>
+    <select id="fps"><option value="15">15 fps (economiza internet)</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select>
+    <label for="bitrate">Qualidade</label>
+    <select id="bitrate"><option value="1500">Leve (1,5 Mbps)</option><option value="3000" selected>Média (3 Mbps)</option><option value="6000">Alta (6 Mbps)</option></select>
+    <label for="res">Resolução</label>
+    <select id="res"><option value="480">480p (PC fraco)</option><option value="720" selected>720p (recomendado)</option><option value="1080">1080p (PC forte)</option></select>
+    <label for="content">Conteúdo</label>
+    <select id="content"><option value="motion" selected>Movimento (vídeo, YouTube, jogos)</option><option value="detail">Texto e imagens (fichas, mapas)</option></select>
+    <button id="startBtn">Escolher tela e começar</button>
+    <button id="stopBtn" class="bad" disabled>Parar transmissão</button>
+    <div class="tip">Na janela do navegador, escolha <b>Aba</b> e marque <b>Compartilhar áudio da aba</b>. Para o som do sistema inteiro, escolha <b>Tela inteira</b> (Chrome/Edge no Windows).</div>
+  </section>
+
+  <section class="card" id="viewCard">
+    <h2><small>AVENTUREIRO</small>Assistir</h2><hr>
+    <label for="room">Código da sala</label>
+    <input id="room" placeholder="· · · · ·" maxlength="5" autocomplete="off">
+    <button id="joinBtn">Entrar na sala</button>
+    <button id="leaveBtn" class="sec" disabled>Sair</button>
+  </section>
+</div>
+
+<section id="stage" class="card">
+  <div class="bar"><span class="code" id="codeOut"></span><span class="status" id="status"></span></div>
+  <div class="vwrap"><video id="vid" autoplay playsinline></video><button id="play" hidden>Tocar vídeo</button></div>
+  <div class="bar">
+    <button class="sec" id="fsBtn">Tela cheia</button>
+    <label for="vol">Volume</label><input type="range" id="vol" min="0" max="1" step="0.05" value="1">
+    <button class="sec" id="muteBtn">Silenciar</button>
+  </div>
+</section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const PREFIX = "mesa-rpg-";
+let peer = null, stream = null, calls = [], mode = null;
+
+function setStatus(t, c){ const s=$("status"); s.textContent=t; s.className="status "+(c||""); }
+function showStage(code, host){
+  $("stage").classList.add("on"); $("codeOut").textContent = code;
+  $("vid").muted = host; $("muteBtn").textContent = host ? "Ativar som local" : "Silenciar";
+  $("vol").disabled = host;
+}
+function resetUI(){
+  $("startBtn").disabled=false; $("stopBtn").disabled=true;
+  $("joinBtn").disabled=false; $("leaveBtn").disabled=true;
+  $("stage").classList.remove("on"); $("vid").srcObject=null; mode=null;
+}
+function cleanup(){
+  calls.forEach(c=>{try{c.close()}catch(e){}}); calls=[];
+  if(stream){stream.getTracks().forEach(t=>t.stop()); stream=null;}
+  if(peer){try{peer.destroy()}catch(e){} peer=null;}
+  resetUI();
+}
+function newCode(){ const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; return Array.from({length:5},()=>a[Math.random()*a.length|0]).join(""); }
+
+/* ---------- Anfitrião ---------- */
+// Coloca o H264 na frente: muitos PCs codificam H264 pela placa de vídeo, aliviando o processador.
+function preferH264(sdp){
+  try{
+    const lines = sdp.split("\r\n");
+    const mi = lines.findIndex(l=>l.startsWith("m=video"));
+    if(mi<0) return sdp;
+    const h264 = [];
+    lines.forEach(l=>{ const m=l.match(/^a=rtpmap:(\d+) H264\//); if(m) h264.push(m[1]); });
+    if(!h264.length) return sdp;
+    const parts = lines[mi].split(" "), head = parts.slice(0,3), pts = parts.slice(3);
+    lines[mi] = head.concat(pts.filter(p=>h264.includes(p)), pts.filter(p=>!h264.includes(p))).join(" ");
+    return lines.join("\r\n");
+  }catch(e){ return sdp; }
+}
+async function tuneSender(call){
+  const bitrate = +$("bitrate").value * 1000, fps = +$("fps").value;
+  await new Promise(r=>setTimeout(r,800));
+  const pc = call.peerConnection; if(!pc) return;
+  pc.getSenders().forEach(async s=>{
+    if(s.track && s.track.kind==="video"){
+      const p = s.getParameters(); if(!p.encodings||!p.encodings.length) p.encodings=[{}];
+      p.encodings[0].maxBitrate = bitrate; p.encodings[0].maxFramerate = fps;
+      p.degradationPreference = $("content").value==="detail" ? "maintain-resolution" : "maintain-framerate";
+      try{await s.setParameters(p)}catch(e){}
+    }
+    if(s.track && s.track.kind==="audio"){
+      const p = s.getParameters(); if(!p.encodings||!p.encodings.length) p.encodings=[{}];
+      p.encodings[0].maxBitrate = 128000;
+      try{await s.setParameters(p)}catch(e){}
+    }
+  });
+}
+function startPeerHost(code){
+  peer = new Peer(PREFIX+code);
+  peer.on("open", ()=>{ showStage(code, true); updateViewers(); });
+  peer.on("error", e=>{
+    if(e.type==="unavailable-id"){ peer.destroy(); startPeerHost(newCode()); return; }
+    setStatus("Erro de conexão: "+e.type, "err");
+  });
+  peer.on("disconnected", ()=>{ try{peer.reconnect()}catch(e){} });
+  peer.on("connection", conn=>{
+    conn.on("open", ()=>{
+      const call = peer.call(conn.peer, stream, { sdpTransform: preferH264 });
+      calls.push(call); tuneSender(call); updateViewers();
+      const drop = ()=>{ calls = calls.filter(c=>c!==call); updateViewers(); };
+      call.on("close", drop); conn.on("close", ()=>{ try{call.close()}catch(e){} drop(); });
+    });
+  });
+}
+function updateViewers(){ setStatus("Transmitindo · "+calls.length+" espectador(es)", "ok"); }
+
+$("startBtn").onclick = async ()=>{
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){ alert("Este navegador não permite compartilhar tela. Use Chrome ou Edge no computador."); return; }
+  try{
+    const fps = +$("fps").value;
+    stream = await navigator.mediaDevices.getDisplayMedia({
+      video:{ frameRate:{ideal:fps,max:fps}, height:{ideal:+$("res").value,max:+$("res").value} },
+      audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+    });
+  }catch(e){ return; }
+  const v = stream.getVideoTracks()[0];
+  if(v){ v.contentHint = $("content").value; v.onended = ()=>{ if(mode==="host") cleanup(); }; }
+  mode="host";
+  $("vid").srcObject = stream;
+  $("startBtn").disabled=true; $("stopBtn").disabled=false; $("joinBtn").disabled=true;
+  startPeerHost(newCode());
+  if(!stream.getAudioTracks().length) setTimeout(()=>setStatus("Transmitindo SEM áudio: marque 'Compartilhar áudio' ao escolher a tela","err"),1500);
+};
+$("stopBtn").onclick = cleanup;
+
+/* ---------- Espectador ---------- */
+$("joinBtn").onclick = ()=>{
+  const code = $("room").value.trim().toUpperCase();
+  if(code.length!==5){ alert("Digite o código de 5 letras."); return; }
+  mode="viewer"; $("joinBtn").disabled=true; $("leaveBtn").disabled=false; $("startBtn").disabled=true;
+  showStage(code,false); setStatus("Conectando...");
+  peer = new Peer();
+  peer.on("open", ()=>{
+    const conn = peer.connect(PREFIX+code, {reliable:true});
+    const t = setTimeout(()=>{ if(mode==="viewer" && !$("vid").srcObject){ setStatus("Sala não encontrada. Confira o código.","err"); } }, 10000);
+    conn.on("close", ()=>{ clearTimeout(t); if(mode==="viewer"){ setStatus("A transmissão terminou.","err"); } });
+  });
+  peer.on("call", call=>{
+    call.answer();
+    call.on("stream", s=>{
+      $("vid").srcObject = s; setStatus("Ao vivo","ok");
+      $("vid").play().catch(()=>{ $("play").hidden=false; });
+    });
+    call.on("close", ()=>setStatus("A transmissão terminou.","err"));
+  });
+  peer.on("error", e=>setStatus(e.type==="peer-unavailable" ? "Sala não encontrada. Confira o código." : "Erro: "+e.type,"err"));
+};
+$("leaveBtn").onclick = cleanup;
+$("play").onclick = ()=>{ $("vid").play(); $("play").hidden=true; };
+
+/* ---------- Controles ---------- */
+$("fsBtn").onclick = ()=>{ const w=document.querySelector(".vwrap"); document.fullscreenElement ? document.exitFullscreen() : w.requestFullscreen(); };
+$("vol").oninput = e=>{ $("vid").volume = e.target.value; };
+$("muteBtn").onclick = ()=>{ const v=$("vid"); v.muted=!v.muted; $("muteBtn").textContent = v.muted ? "Ativar som" : "Silenciar"; };
+window.addEventListener("beforeunload", ()=>{ if(peer) peer.destroy(); });
+</script>
+</body>
+</html>
