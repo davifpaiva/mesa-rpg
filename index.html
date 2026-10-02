@@ -48,8 +48,10 @@ video{width:100%;height:100%;object-fit:contain;background:#000}
     <select id="fps"><option value="15">15 fps (economiza internet)</option><option value="30" selected>30 fps</option><option value="60">60 fps</option></select>
     <label for="bitrate">Qualidade</label>
     <select id="bitrate"><option value="1500">Leve (1,5 Mbps)</option><option value="3000" selected>Média (3 Mbps)</option><option value="6000">Alta (6 Mbps)</option></select>
+    <label for="res">Resolução</label>
+    <select id="res"><option value="480">480p (PC fraco)</option><option value="720" selected>720p (recomendado)</option><option value="1080">1080p (PC forte)</option></select>
     <label for="content">Conteúdo</label>
-    <select id="content"><option value="detail">Texto e imagens (fichas, mapas)</option><option value="motion">Movimento (vídeo, jogos)</option></select>
+    <select id="content"><option value="motion" selected>Movimento (vídeo, YouTube, jogos)</option><option value="detail">Texto e imagens (fichas, mapas)</option></select>
     <button id="startBtn">Escolher tela e começar</button>
     <button id="stopBtn" class="bad" disabled>Parar transmissão</button>
     <div class="tip">Na janela do navegador, escolha <b>Aba</b> e marque <b>Compartilhar áudio da aba</b>. Para compartilhar o som do sistema inteiro, escolha <b>Tela inteira</b> (Chrome/Edge no Windows).</div>
@@ -101,6 +103,20 @@ function cleanup(){
 function newCode(){ const a="ABCDEFGHJKMNPQRSTUVWXYZ23456789"; return Array.from({length:5},()=>a[Math.random()*a.length|0]).join(""); }
 
 /* ---------- Anfitrião ---------- */
+// Coloca o H264 na frente: muitos PCs codificam H264 pela placa de vídeo, aliviando o processador.
+function preferH264(sdp){
+  try{
+    const lines = sdp.split("\r\n");
+    const mi = lines.findIndex(l=>l.startsWith("m=video"));
+    if(mi<0) return sdp;
+    const h264 = [];
+    lines.forEach(l=>{ const m=l.match(/^a=rtpmap:(\d+) H264\//); if(m) h264.push(m[1]); });
+    if(!h264.length) return sdp;
+    const parts = lines[mi].split(" "), head = parts.slice(0,3), pts = parts.slice(3);
+    lines[mi] = head.concat(pts.filter(p=>h264.includes(p)), pts.filter(p=>!h264.includes(p))).join(" ");
+    return lines.join("\r\n");
+  }catch(e){ return sdp; }
+}
 async function tuneSender(call){
   const bitrate = +$("bitrate").value * 1000, fps = +$("fps").value;
   await new Promise(r=>setTimeout(r,800));
@@ -129,7 +145,7 @@ function startPeerHost(code){
   peer.on("disconnected", ()=>{ try{peer.reconnect()}catch(e){} });
   peer.on("connection", conn=>{
     conn.on("open", ()=>{
-      const call = peer.call(conn.peer, stream);
+      const call = peer.call(conn.peer, stream, { sdpTransform: preferH264 });
       calls.push(call); tuneSender(call); updateViewers();
       const drop = ()=>{ calls = calls.filter(c=>c!==call); updateViewers(); };
       call.on("close", drop); conn.on("close", ()=>{ try{call.close()}catch(e){} drop(); });
@@ -143,7 +159,7 @@ $("startBtn").onclick = async ()=>{
   try{
     const fps = +$("fps").value;
     stream = await navigator.mediaDevices.getDisplayMedia({
-      video:{ frameRate:{ideal:fps,max:fps}, width:{ideal:1920}, height:{ideal:1080} },
+      video:{ frameRate:{ideal:fps,max:fps}, height:{ideal:+$("res").value,max:+$("res").value} },
       audio:{ echoCancellation:false, noiseSuppression:false, autoGainControl:false }
     });
   }catch(e){ return; }
