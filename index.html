@@ -261,7 +261,7 @@ function onData(id,d){const p=conns.get(id);if(!p||!d)return;p.seen=Date.now();i
  else if(d.t==="roll"){const r=rollDice(d.n,d.d,d.m);r.from=p.name;showRoll(r);bcast(r);}}
 function startHost(c,fixed){
  peer=new Peer(PREFIX+c);
- peer.on("open",()=>{code=c;showStage(c,true);sendWho();setBtns();clearInterval(pruneTimer);pruneTimer=setInterval(()=>{const now=Date.now();[...conns].forEach(([id,p])=>{if(now-p.seen>20000)dropPlayer(id);});},4000);});
+ peer.on("open",()=>{code=c;showStage(c,true);sendWho();setBtns();clearInterval(pruneTimer);pruneTimer=setInterval(()=>{if(peer&&peer.disconnected&&!peer.destroyed){try{peer.reconnect()}catch(e){}}const now=Date.now();[...conns].forEach(([id,p])=>{if(now-p.seen>20000)dropPlayer(id);});},4000);});
  peer.on("error",e=>{if(e.type==="unavailable-id"){try{peer.destroy()}catch(x){}peer=null;if(fixed){alert("Esse código já está em uso. Escolha outro ou deixe em branco.");resetAll();}else startHost(newCode(),false);return;}if(["network","server-error","socket-error","socket-closed","disconnected"].includes(e.type)){try{peer&&peer.reconnect()}catch(x){}return;}setStatus("Erro de conexão: "+e.type,"err");});
  peer.on("disconnected",()=>{try{peer.reconnect()}catch(e){}});
  peer.on("call",call=>{const p=conns.get(call.peer);if(!p||granted!==call.peer){try{call.close()}catch(e){}return;}
@@ -302,17 +302,20 @@ function onViewerData(d){if(!d)return;
  else if(d.t==="revoke"){canShare=false;stopMyShare(false);shareUI();}}
 $("joinBtn").onclick=()=>{code=clean($("room").value);if(code.length<3){alert("Digite o código da sala.");return;}
  myName=clip($("vname").value,20)||"Aventureiro";ls("vname",myName);unlockAudio();mode="viewer";setBtns();showStage(code,false);setStatus("Conectando...");
- let ok=false;peer=new Peer();
- peer.on("open",()=>{hostConn=peer.connect(PREFIX+code,{reliable:true});
-  hostConn.on("open",()=>{ok=true;clearInterval(hbTimer);hbTimer=setInterval(()=>{if(hostConn&&hostConn.open){try{hostConn.send({t:"ping"})}catch(e){}}},4000);hostConn.send({t:"hello",name:myName});setStatus("Na sala · aguardando o mestre compartilhar a tela","ok");});
-  hostConn.on("data",onViewerData);
-  hostConn.on("close",()=>{if(mode==="viewer"){setStatus("A sala foi encerrada.","err");stopMyShare(false);canShare=false;shareUI();$("vid").srcObject=null;$("wait").hidden=false;}});
-  setTimeout(()=>{if(!ok&&mode==="viewer")setStatus("Sala não encontrada. Confira o código.","err");},10000);});
+ let ok=false,notFound=false,tries=0;peer=new Peer();
+ const sigT=setTimeout(()=>{if(mode==="viewer"&&peer&&!peer.open)setStatus("Não consegui falar com o servidor de conexão. Bloqueador, VPN ou rede restrita podem impedir. Tente outra rede.","err");},8000);
+ const tryJoin=()=>{if(mode!=="viewer"||ok)return;tries++;notFound=false;
+  const hc=peer.connect(PREFIX+code,{reliable:true});hostConn=hc;
+  hc.on("open",()=>{ok=true;clearInterval(hbTimer);hbTimer=setInterval(()=>{if(hostConn&&hostConn.open){try{hostConn.send({t:"ping"})}catch(e){}}},4000);hc.send({t:"hello",name:myName});setStatus("Na sala · aguardando o mestre compartilhar a tela","ok");});
+  hc.on("data",onViewerData);
+  hc.on("close",()=>{if(mode==="viewer"&&ok){setStatus("A sala foi encerrada.","err");stopMyShare(false);canShare=false;shareUI();$("vid").srcObject=null;$("wait").hidden=false;}});
+  setTimeout(()=>{if(!ok&&mode==="viewer"&&hostConn===hc&&!notFound)setStatus("Achei a sala, mas não consegui conectar. A rede pode estar bloqueando (escola, trabalho, 4G). Tente outra rede ou o Chrome.","err");},12000);};
+ peer.on("open",()=>{clearTimeout(sigT);tryJoin();});
  peer.on("call",call=>{if(myShare){try{call.close()}catch(e){}return;}call.answer();
   call.on("stream",st=>{if(myShare)return;$("vid").srcObject=st;$("wait").hidden=true;setStatus("Ao vivo","ok");$("vid").play().catch(()=>{$("play").hidden=false;});});
   call.on("close",()=>{if(myShare)return;$("vid").srcObject=null;$("wait").hidden=false;if(mode==="viewer")setStatus("Na sala · aguardando o mestre compartilhar a tela","ok");});});
  peer.on("disconnected",()=>{try{peer.reconnect()}catch(e){}});
- peer.on("error",e=>{if(e.type==="peer-unavailable"){setStatus("Sala não encontrada. Confira o código.","err");return;}
+ peer.on("error",e=>{if(e.type==="peer-unavailable"){notFound=true;if(ok)return;if(tries<12){setStatus("Procurando a sala "+code+"… o mestre precisa estar com a sala aberta.","");setTimeout(tryJoin,5000);}else setStatus("Sala não encontrada. Confira o código e se o mestre está com a sala aberta.","err");return;}
   if(["network","server-error","socket-error","socket-closed","disconnected"].includes(e.type)){if(ok){try{peer.reconnect()}catch(x){}}else setStatus("Sem conexão com o servidor. Tente novamente.","err");return;}
   setStatus("Erro: "+e.type,"err");});};
 $("leaveBtn").onclick=()=>{if(hostConn&&hostConn.open){try{hostConn.send({t:"bye"})}catch(e){}}setTimeout(resetAll,150);};
